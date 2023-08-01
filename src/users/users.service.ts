@@ -8,6 +8,8 @@ import { Response } from 'express';
 import * as bcrypt from 'bcrypt';
 import { v4 as uuidv4 } from 'uuid';
 import { LoginUserDto } from './dto/login-user.dto';
+import { Op } from "sequelize";
+import { FindUserDto } from './dto/find-user.dto';
 
 @Injectable()
 export class UsersService {
@@ -204,6 +206,55 @@ export class UsersService {
       tokens,
     };
     return response;
+  }
+
+  // FIND | SEARCH
+
+  async findAll(findUserDto: FindUserDto) {
+    const where = {};
+
+    if (findUserDto.first_name) {
+      where["first_name"] = {
+        [Op.like]: `%${findUserDto.first_name}%`
+      }
+    }
+    if (findUserDto.last_name) {
+      where["last_name"] = {
+        [Op.like]: `%${findUserDto.last_name}%`
+      }
+    }
+    if (findUserDto.username) {
+      where["username"] = {
+        [Op.like]: `%${findUserDto.username}%`
+      }
+    }
+    if (findUserDto.phone) {
+      where["phone"] = {
+        [Op.like]: `%${findUserDto.phone}%`
+      }
+    }
+    if (findUserDto.email) {
+      where["email"] = {
+        [Op.like]: `%${findUserDto.email}%`
+      }
+    }
+    if (findUserDto.birthday_begin && findUserDto.birthday_end) {
+      where[Op.and] = {
+        birthday: {
+          [Op.between]: [findUserDto.birthday_begin, findUserDto.birthday_end]
+        }
+      };
+    } else if (findUserDto.birthday_begin) {
+      where["birthday"] = { [Op.gte]: findUserDto.birthday_begin }
+    } else if (findUserDto.birthday_end) {
+      where["birthday"] = { [Op.gte]: findUserDto.birthday_end }
+    }
+    const users = await User.findAll({ where });
+    console.log(where)
+    if (users.length == 0 || !users) {
+      throw new BadRequestException("User not found");
+    }
+    return users;
   }
 
 }

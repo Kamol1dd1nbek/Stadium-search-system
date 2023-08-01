@@ -18,6 +18,7 @@ import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { User } from './models/user.model';
 import { LoginUserDto } from './dto/login-user.dto';
 import { CookieGetter } from '../decorators/cookieGetter.decorator';
+import { FindUserDto } from './dto/find-user.dto';
 
 @ApiTags("User")
 @Controller('users')
@@ -69,29 +70,13 @@ export class UsersController {
     return this.usersService.refreshToken(+id, refreshToken, res);
   }
 
+  // @UserGuards(UserGuard)
+  @ApiOperation({ summary: '| Find User' })
+  @Post('find')
+  findAll(
+    @Body() findUserDto: FindUserDto
+  ) {
+    return this.usersService.findAll(findUserDto);
+  }
 
-  // @Post()
-  // create(@Body() createUserDto: CreateUserDto) {
-  //   return this.usersService.create(createUserDto);
-  // }
-
-  // @Get()
-  // findAll() {
-  //   return this.usersService.findAll();
-  // }
-
-  // @Get(':id')
-  // findOne(@Param('id') id: string) {
-  //   return this.usersService.findOne(+id);
-  // }
-
-  // @Patch(':id')
-  // update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
-  //   return this.usersService.update(+id, updateUserDto);
-  // }
-
-  // @Delete(':id')
-  // remove(@Param('id') id: string) {
-  //   return this.usersService.remove(+id);
-  // }
 }
