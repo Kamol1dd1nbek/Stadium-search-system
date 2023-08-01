@@ -17,7 +17,7 @@ const start = async () => {
     .build();
 
   const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup("instagram/docs", app, document);
+  SwaggerModule.setup("stadium/docs", app, document);
     const PORT = process.env.PORT || 3030;
     
     app.use(cookieParser());

@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { SequelizeModule } from "@nestjs/sequelize";
 import { ConfigModule } from "@nestjs/config"
 import { UsersModule } from './users/users.module';
+import { User } from './users/models/user.model';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -17,7 +18,7 @@ import { UsersModule } from './users/users.module';
       database: process.env.PG_DB,
       logging: true,
       autoLoadModels: true,
-      models: [],
+      models: [User],
     }),
     UsersModule,
   ],
@@ -25,4 +26,3 @@ import { UsersModule } from './users/users.module';
   providers: [],
 })
 export class AppModule {}
-console.log("-------------->", process.env.PORT)
