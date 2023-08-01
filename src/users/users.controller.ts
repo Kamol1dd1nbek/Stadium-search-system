@@ -55,6 +55,20 @@ export class UsersController {
     return this.usersService.logout(refreshToken, res);
   }
 
+  // @UserGuards(UserGuard)
+  @ApiOperation({ summary: 'Refresh token' })
+  @ApiResponse({ status: 200, type: User })
+  @HttpCode(HttpStatus.OK)
+  @Post(':id/refresh')
+  refreshToken(
+    @Param("id") id: string,
+    @CookieGetter("refresh_token") refreshToken: string,
+    @Res({ passthrough: true }) res: Response
+  ) {
+    return this.usersService.refreshToken(+id, refreshToken, res);
+  }
+
+
   // @Post()
   // create(@Body() createUserDto: CreateUserDto) {
   //   return this.usersService.create(createUserDto);

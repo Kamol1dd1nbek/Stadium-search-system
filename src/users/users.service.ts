@@ -161,4 +161,49 @@ export class UsersService {
     return response;
   }
 
+  // SOLID NIMA
+  // REFREShTOKEN
+
+  async refreshToken(user_id: number, refreshToken: string, res: Response) {
+    const decodedToken = this.jwtService.decode(refreshToken);
+    if(user_id != decodedToken["id"]) {
+      throw new BadRequestException("User not found");
+    }
+    const user = await this.userRepo.findOne({ where: { id: user_id } });
+    if (!user || !user.hashed_refresh_token) {
+      throw new BadRequestException("User not found");
+    }
+
+    const tokenMatch = await bcrypt.compare(refreshToken, user.hashed_refresh_token);
+
+    if (!tokenMatch) {
+      throw new ForbiddenException("Forbidden");
+    }
+
+    const tokens = await this.getTokens(user);
+
+    const hashed_refresh_token = await bcrypt.hash(tokens.refresh_token, 7);
+
+    const updatedUser = await this.userRepo.update(
+      {
+        hashed_refresh_token: hashed_refresh_token
+      },
+      {
+        where: { id: user.id },
+        returning: true,
+      },
+    );
+    res.cookie('refresh_token', tokens.refresh_token, {
+      maxAge: 15 * 24 * 60 * 60 * 1000,
+      httpOnly: true,
+    });
+
+    const response = {
+      message: 'User refreshed successfully',
+      user: updatedUser[1][0],
+      tokens,
+    };
+    return response;
+  }
+
 }
