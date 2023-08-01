@@ -1,19 +1,31 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Res, HttpCode, HttpStatus } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  Res,
+  HttpCode,
+  HttpStatus,
+} from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
-import { Response } from "express"
+import { Response } from 'express';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { User } from './models/user.model';
 import { LoginUserDto } from './dto/login-user.dto';
+import { CookieGetter } from '../decorators/cookieGetter.decorator';
 
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
-  @ApiOperation({ summary: "Registration User" })
-  @ApiResponse({status: 201, type: User})
-  @Post("signup")
+  @ApiOperation({ summary: 'Registration User' })
+  @ApiResponse({ status: 201, type: User })
+  @Post('signup')
   registration(
     @Body() createUserDto: CreateUserDto,
     @Res({ passthrough: true }) res: Response,
@@ -21,15 +33,26 @@ export class UsersController {
     return this.usersService.registration(createUserDto, res);
   }
 
-  @ApiOperation({ summary: "Login User" })
-  @ApiResponse({status: 200, type: User})
+  @ApiOperation({ summary: 'Login User' })
+  @ApiResponse({ status: 200, type: User })
   @HttpCode(HttpStatus.OK)
-  @Post("login")
+  @Post('login')
   login(
     @Body() loginUserDto: LoginUserDto,
     @Res({ passthrough: true }) res: Response,
   ) {
     return this.usersService.login(loginUserDto, res);
+  }
+
+  @ApiOperation({ summary: 'Logout User' })
+  @ApiResponse({ status: 200, type: User })
+  @HttpCode(HttpStatus.OK)
+  @Post('logout')
+  logout(
+    @CookieGetter("refresh_token") refreshToken: string,
+    @Res({ passthrough: true }) res: Response
+  ) {
+    return this.usersService.logout(refreshToken, res);
   }
 
   // @Post()

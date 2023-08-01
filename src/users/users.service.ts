@@ -1,4 +1,4 @@
-import { Injectable, BadRequestException, UnauthorizedException } from '@nestjs/common';
+import { Injectable, BadRequestException, UnauthorizedException, ForbiddenException } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { InjectModel } from '@nestjs/sequelize';
@@ -18,6 +18,8 @@ export class UsersService {
   create(createUserDto: CreateUserDto) {
     return 'This action adds a new user';
   }
+
+  // REGISTRATION
 
   async registration(createUserDto: CreateUserDto, res: Response) {
     const user = await this.userRepo.findOne({
@@ -66,6 +68,8 @@ export class UsersService {
     return response;
   }
 
+  // GEtTOKENS
+
   async getTokens(user: User) {
     const jwPayload = {
       id: user.id,
@@ -87,6 +91,8 @@ export class UsersService {
       refresh_token: refreshToken,
     };
   }
+
+  // LOGIN
 
   async login(loginUserDto: LoginUserDto, res: Response) {
     const { email, password } = loginUserDto;
@@ -121,26 +127,38 @@ export class UsersService {
     });
 
     const response = {
-      message: 'User registered',
+      message: 'User logged in successfully',
       user: updatedUser[1][0],
       tokens,
     };
     return response;
   }
 
-  // findAll() {
-  //   return `This action returns all users`;
-  // }
+  // LOGOUT
 
-  // findOne(id: number) {
-  //   return `This action returns a #${id} user`;
-  // }
+  async logout(refreshToken: string, res: Response) {
+    const userData = await this.jwtService.verify(refreshToken, { secret: process.env.REFRESH_TOKEN_KEY });
 
-  // update(id: number, updateUserDto: UpdateUserDto) {
-  //   return `This action updates a #${id} user`;
-  // }
+    if (!userData) {
+      throw new ForbiddenException("User not found");
+    }
 
-  // remove(id: number) {
-  //   return `This action removes a #${id} user`;
-  // }
+    const updatedUser = await this.userRepo.update(
+      {
+        hashed_refresh_token: null
+      },
+      {
+        where: { id: userData.id },
+        returning: true,
+      },
+    );
+    res.clearCookie('refresh_token');
+
+    const response = {
+      message: 'User logged out successfully',
+      user: updatedUser[1][0]
+    };
+    return response;
+  }
+
 }
