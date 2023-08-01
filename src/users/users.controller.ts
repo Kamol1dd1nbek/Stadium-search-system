@@ -14,16 +14,17 @@ import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { Response } from 'express';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { User } from './models/user.model';
 import { LoginUserDto } from './dto/login-user.dto';
 import { CookieGetter } from '../decorators/cookieGetter.decorator';
 
+@ApiTags("User")
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
-  @ApiOperation({ summary: 'Registration User' })
+  @ApiOperation({ summary: '| Registration User' })
   @ApiResponse({ status: 201, type: User })
   @Post('signup')
   registration(
@@ -33,7 +34,7 @@ export class UsersController {
     return this.usersService.registration(createUserDto, res);
   }
 
-  @ApiOperation({ summary: 'Login User' })
+  @ApiOperation({ summary: '| Login User' })
   @ApiResponse({ status: 200, type: User })
   @HttpCode(HttpStatus.OK)
   @Post('login')
@@ -44,7 +45,7 @@ export class UsersController {
     return this.usersService.login(loginUserDto, res);
   }
 
-  @ApiOperation({ summary: 'Logout User' })
+  @ApiOperation({ summary: '| Logout User' })
   @ApiResponse({ status: 200, type: User })
   @HttpCode(HttpStatus.OK)
   @Post('logout')
@@ -56,7 +57,7 @@ export class UsersController {
   }
 
   // @UserGuards(UserGuard)
-  @ApiOperation({ summary: 'Refresh token' })
+  @ApiOperation({ summary: '| Refresh token' })
   @ApiResponse({ status: 200, type: User })
   @HttpCode(HttpStatus.OK)
   @Post(':id/refresh')
