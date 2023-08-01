@@ -41,7 +41,7 @@ export class User extends Model<User, UserAttrs>{
     @ApiProperty({example: "sob1rc1k", description: "User: username"})
     @Column({
         type: DataType.STRING,
-        unique: true
+        // unique: true
     })
     username: string;
     

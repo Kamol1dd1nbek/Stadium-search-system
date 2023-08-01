@@ -79,4 +79,13 @@ export class UsersController {
     return this.usersService.findAll(findUserDto);
   }
 
+  // @UserGuards(UserGuard)
+  @ApiOperation({ summary: '| Find User' })
+  @Get('activate/:uuid')
+  activation(
+    @Param("uuid") uuid: string
+  ) {
+    return this.usersService.activation(uuid);
+  }
+
 }

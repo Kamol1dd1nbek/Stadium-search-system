@@ -10,12 +10,14 @@ import { v4 as uuidv4 } from 'uuid';
 import { LoginUserDto } from './dto/login-user.dto';
 import { Op } from "sequelize";
 import { FindUserDto } from './dto/find-user.dto';
+import { MailService } from '../mail/mail.service';
 
 @Injectable()
 export class UsersService {
   constructor(
     @InjectModel(User) private readonly userRepo: typeof User,
     private readonly jwtService: JwtService,
+    private readonly mailService: MailService,
   ) {}
   create(createUserDto: CreateUserDto) {
     return 'This action adds a new user';
@@ -60,7 +62,12 @@ export class UsersService {
       httpOnly: true,
     });
 
-    // await this.mailService.sendUserConfirmation(updatedUser[1][0]);
+    try {
+      await this.mailService.sendUserConfirmation(updatedUser[1][0]);
+    } catch (error) {
+      console.log(error);
+      throw new BadRequestException("Something went wrong!")
+    }
 
     const response = {
       message: 'User registered',
@@ -257,4 +264,25 @@ export class UsersService {
     return users;
   }
 
+  // ACTIVATION
+
+  async activation(uuid: string) {
+    const user = await this.userRepo.findOne({ where: { activation_link: uuid } });
+
+    if(!user) {
+      throw new UnauthorizedException("User not found");
+    }
+
+    if(user.is_active) {
+      throw new BadRequestException("The user is already activated");
+    }
+
+    user.is_active = true;
+    await user.save()
+
+    return {
+      message: "Successfully activated!",
+      statusCode: 200
+    }
+  }
 }
