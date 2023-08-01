@@ -20,10 +20,12 @@ import { LoginUserDto } from './dto/login-user.dto';
 import { CookieGetter } from '../decorators/cookieGetter.decorator';
 import { FindUserDto } from './dto/find-user.dto';
 
-@ApiTags("User")
+@ApiTags('User')
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
+
+  // REGISTRATION
 
   @ApiOperation({ summary: '| Registration User' })
   @ApiResponse({ status: 201, type: User })
@@ -34,6 +36,8 @@ export class UsersController {
   ) {
     return this.usersService.registration(createUserDto, res);
   }
+
+  // LOGIN
 
   @ApiOperation({ summary: '| Login User' })
   @ApiResponse({ status: 200, type: User })
@@ -46,16 +50,20 @@ export class UsersController {
     return this.usersService.login(loginUserDto, res);
   }
 
+  // LOGOUT
+
   @ApiOperation({ summary: '| Logout User' })
   @ApiResponse({ status: 200, type: User })
   @HttpCode(HttpStatus.OK)
   @Post('logout')
   logout(
-    @CookieGetter("refresh_token") refreshToken: string,
-    @Res({ passthrough: true }) res: Response
+    @CookieGetter('refresh_token') refreshToken: string,
+    @Res({ passthrough: true }) res: Response,
   ) {
     return this.usersService.logout(refreshToken, res);
   }
+
+  // REDREShTOKEN
 
   // @UserGuards(UserGuard)
   @ApiOperation({ summary: '| Refresh token' })
@@ -63,29 +71,37 @@ export class UsersController {
   @HttpCode(HttpStatus.OK)
   @Post(':id/refresh')
   refreshToken(
-    @Param("id") id: string,
-    @CookieGetter("refresh_token") refreshToken: string,
-    @Res({ passthrough: true }) res: Response
+    @Param('id') id: string,
+    @CookieGetter('refresh_token') refreshToken: string,
+    @Res({ passthrough: true }) res: Response,
   ) {
     return this.usersService.refreshToken(+id, refreshToken, res);
   }
 
+  // FIND
+
   // @UserGuards(UserGuard)
   @ApiOperation({ summary: '| Find User' })
   @Post('find')
-  findAll(
-    @Body() findUserDto: FindUserDto
-  ) {
+  findAll(@Body() findUserDto: FindUserDto) {
     return this.usersService.findAll(findUserDto);
   }
+
+  // ACTIVATION
 
   // @UserGuards(UserGuard)
   @ApiOperation({ summary: '| Find User' })
   @Get('activate/:uuid')
-  activation(
-    @Param("uuid") uuid: string
-  ) {
+  activation(@Param('uuid') uuid: string) {
     return this.usersService.activation(uuid);
   }
 
+  // UPDATE
+
+  @ApiOperation({ summary: '| Update User' })
+  @HttpCode(204)
+  @Patch(':id')
+  updateUser(@Body() updateUserDto: UpdateUserDto, @Param('id') id: string) {
+    return this.usersService.updateUser(updateUserDto, +id);
+  }
 }

@@ -1,4 +1,9 @@
-import { Injectable, BadRequestException, UnauthorizedException, ForbiddenException } from '@nestjs/common';
+import {
+  Injectable,
+  BadRequestException,
+  UnauthorizedException,
+  ForbiddenException,
+} from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { InjectModel } from '@nestjs/sequelize';
@@ -8,7 +13,7 @@ import { Response } from 'express';
 import * as bcrypt from 'bcrypt';
 import { v4 as uuidv4 } from 'uuid';
 import { LoginUserDto } from './dto/login-user.dto';
-import { Op } from "sequelize";
+import { Op } from 'sequelize';
 import { FindUserDto } from './dto/find-user.dto';
 import { MailService } from '../mail/mail.service';
 
@@ -19,9 +24,6 @@ export class UsersService {
     private readonly jwtService: JwtService,
     private readonly mailService: MailService,
   ) {}
-  create(createUserDto: CreateUserDto) {
-    return 'This action adds a new user';
-  }
 
   // REGISTRATION
 
@@ -66,7 +68,7 @@ export class UsersService {
       await this.mailService.sendUserConfirmation(updatedUser[1][0]);
     } catch (error) {
       console.log(error);
-      throw new BadRequestException("Something went wrong!")
+      throw new BadRequestException('Something went wrong!');
     }
 
     const response = {
@@ -105,16 +107,16 @@ export class UsersService {
 
   async login(loginUserDto: LoginUserDto, res: Response) {
     const { email, password } = loginUserDto;
-    const user = await this.userRepo.findOne({where: { email }});
+    const user = await this.userRepo.findOne({ where: { email } });
 
     if (!user) {
-      throw new UnauthorizedException("User not registered");
+      throw new UnauthorizedException('User not registered');
     }
 
     const isMatchPass = await bcrypt.compare(password, user.hashed_password);
 
     if (!isMatchPass) {
-      throw new UnauthorizedException("User not registered ( password error )");
+      throw new UnauthorizedException('User not registered ( password error )');
     }
 
     const tokens = await this.getTokens(user);
@@ -123,7 +125,7 @@ export class UsersService {
 
     const updatedUser = await this.userRepo.update(
       {
-        hashed_refresh_token: hashed_refresh_token
+        hashed_refresh_token: hashed_refresh_token,
       },
       {
         where: { id: user.id },
@@ -146,15 +148,17 @@ export class UsersService {
   // LOGOUT
 
   async logout(refreshToken: string, res: Response) {
-    const userData = await this.jwtService.verify(refreshToken, { secret: process.env.REFRESH_TOKEN_KEY });
+    const userData = await this.jwtService.verify(refreshToken, {
+      secret: process.env.REFRESH_TOKEN_KEY,
+    });
 
     if (!userData) {
-      throw new ForbiddenException("User not found");
+      throw new ForbiddenException('User not found');
     }
 
     const updatedUser = await this.userRepo.update(
       {
-        hashed_refresh_token: null
+        hashed_refresh_token: null,
       },
       {
         where: { id: userData.id },
@@ -165,28 +169,30 @@ export class UsersService {
 
     const response = {
       message: 'User logged out successfully',
-      user: updatedUser[1][0]
+      user: updatedUser[1][0],
     };
     return response;
   }
 
-  // SOLID NIMA
   // REFREShTOKEN
 
   async refreshToken(user_id: number, refreshToken: string, res: Response) {
     const decodedToken = this.jwtService.decode(refreshToken);
-    if(user_id != decodedToken["id"]) {
-      throw new BadRequestException("User not found");
+    if (user_id != decodedToken['id']) {
+      throw new BadRequestException('User not found');
     }
     const user = await this.userRepo.findOne({ where: { id: user_id } });
     if (!user || !user.hashed_refresh_token) {
-      throw new BadRequestException("User not found");
+      throw new BadRequestException('User not found');
     }
 
-    const tokenMatch = await bcrypt.compare(refreshToken, user.hashed_refresh_token);
+    const tokenMatch = await bcrypt.compare(
+      refreshToken,
+      user.hashed_refresh_token,
+    );
 
     if (!tokenMatch) {
-      throw new ForbiddenException("Forbidden");
+      throw new ForbiddenException('Forbidden');
     }
 
     const tokens = await this.getTokens(user);
@@ -195,7 +201,7 @@ export class UsersService {
 
     const updatedUser = await this.userRepo.update(
       {
-        hashed_refresh_token: hashed_refresh_token
+        hashed_refresh_token: hashed_refresh_token,
       },
       {
         where: { id: user.id },
@@ -217,49 +223,48 @@ export class UsersService {
 
   // FIND | SEARCH
 
-  async findAll(findUserDto: FindUserDto) {
+  async findAll(findUserDto: FindUserDto): Promise<User[]> {
     const where = {};
 
     if (findUserDto.first_name) {
-      where["first_name"] = {
-        [Op.like]: `%${findUserDto.first_name}%`
-      }
+      where['first_name'] = {
+        [Op.like]: `%${findUserDto.first_name}%`,
+      };
     }
     if (findUserDto.last_name) {
-      where["last_name"] = {
-        [Op.like]: `%${findUserDto.last_name}%`
-      }
+      where['last_name'] = {
+        [Op.like]: `%${findUserDto.last_name}%`,
+      };
     }
     if (findUserDto.username) {
-      where["username"] = {
-        [Op.like]: `%${findUserDto.username}%`
-      }
+      where['username'] = {
+        [Op.like]: `%${findUserDto.username}%`,
+      };
     }
     if (findUserDto.phone) {
-      where["phone"] = {
-        [Op.like]: `%${findUserDto.phone}%`
-      }
+      where['phone'] = {
+        [Op.like]: `%${findUserDto.phone}%`,
+      };
     }
     if (findUserDto.email) {
-      where["email"] = {
-        [Op.like]: `%${findUserDto.email}%`
-      }
+      where['email'] = {
+        [Op.like]: `%${findUserDto.email}%`,
+      };
     }
     if (findUserDto.birthday_begin && findUserDto.birthday_end) {
       where[Op.and] = {
         birthday: {
-          [Op.between]: [findUserDto.birthday_begin, findUserDto.birthday_end]
-        }
+          [Op.between]: [findUserDto.birthday_begin, findUserDto.birthday_end],
+        },
       };
     } else if (findUserDto.birthday_begin) {
-      where["birthday"] = { [Op.gte]: findUserDto.birthday_begin }
+      where['birthday'] = { [Op.gte]: findUserDto.birthday_begin };
     } else if (findUserDto.birthday_end) {
-      where["birthday"] = { [Op.gte]: findUserDto.birthday_end }
+      where['birthday'] = { [Op.gte]: findUserDto.birthday_end };
     }
     const users = await User.findAll({ where });
-    console.log(where)
     if (users.length == 0 || !users) {
-      throw new BadRequestException("User not found");
+      throw new BadRequestException('User not found');
     }
     return users;
   }
@@ -267,22 +272,56 @@ export class UsersService {
   // ACTIVATION
 
   async activation(uuid: string) {
-    const user = await this.userRepo.findOne({ where: { activation_link: uuid } });
+    const user = await this.userRepo.findOne({
+      where: { activation_link: uuid },
+    });
 
-    if(!user) {
-      throw new UnauthorizedException("User not found");
+    if (!user) {
+      throw new UnauthorizedException('User not found');
     }
 
-    if(user.is_active) {
-      throw new BadRequestException("The user is already activated");
+    if (user.is_active) {
+      throw new BadRequestException('The user is already activated');
     }
 
     user.is_active = true;
-    await user.save()
+    await user.save();
 
     return {
-      message: "Successfully activated!",
-      statusCode: 200
+      message: 'Successfully activated!',
+      statusCode: 200,
+    };
+  }
+
+  // UPDATE
+
+  async updateUser(updateUserDto: UpdateUserDto, id: number) {
+    const user = await this.userRepo.findOne({ where: { id } });
+    if (!user) {
+      throw new BadRequestException("User not found");
+    }
+
+    if (updateUserDto.username) {
+      const user = await this.userRepo.findOne({
+        where: { username: updateUserDto.username },
+      });
+      if (user) {
+        if (user.id !== id) {
+          throw new BadRequestException('There is a user with this username');
+        } else {
+          user.username = updateUserDto.username;
+        }
+      }
+    }
+    if (updateUserDto.password) {
+      const hashed_password = await bcrypt.hash(updateUserDto.password, 7);
+      user.hashed_password = hashed_password;
+    }
+    await this.userRepo.update({ ...updateUserDto }, { where: { id } });
+    await user.save();
+    return {
+      message: "Successfully updated",
+      statusCode: 204
     }
   }
 }
